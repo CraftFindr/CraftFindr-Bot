@@ -1,19 +1,22 @@
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class Artisan(AbstractUser):
    phone_number = models.CharField(max_length=15)
 
-class ArtisanServices(models.Model):
+class Service(models.Model):
     id = models.AutoField(primary_key=True)
     artisan = models.ForeignKey(Artisan, on_delete=models.CASCADE, related_name='services_offered')
     service = models.CharField(max_length=100)
 
-class Orders(models.Model):
-   order_id = models.AutoField(primary_key=True)
+class Order(models.Model):
+   order_id = models.AutoField(primary_key=True, unique=True)
    artisan = models.ForeignKey(Artisan, on_delete=models.CASCADE, related_name='orders')
    order = models.CharField(max_length=100)
-   service = models.CharField(max_length=100)
+   service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='all_orders_for_this_service')
+   created_at = models.DateTimeField(default=timezone.now)
+   updated_at = models.DateTimeField(default=timezone.now)
    date = models.DateField()
 
    # time should be in 24 hour format
