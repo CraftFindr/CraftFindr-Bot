@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# (dev) setting my user model for django
+AUTH_USER_MODEL = 'api.Artisan'
 
 # Application definition
 
@@ -37,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'botapi'
+    'api',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
