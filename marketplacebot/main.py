@@ -33,16 +33,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Welcome to CraftFindr Bot. Please choose a service:", reply_markup=reply_markup)
+    await update.message.reply_text("Welcome to CraftFindr Bot. What service are you looking for?", reply_markup=reply_markup)
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(text=f"Selected option: {query.data}")
+    await context.bot.sendMessage(chat_id=query.message.chat_id, text=f"We currently don't have any {query.data}s. Please try again later.")
 
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a simple bot, I help you find services near you. Type /start to get started.")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a simple bot. I help you find services near you. Type /start to get started.")
 
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("help", help))
