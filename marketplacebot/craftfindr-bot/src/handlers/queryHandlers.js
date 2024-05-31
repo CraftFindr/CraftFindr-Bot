@@ -12,7 +12,9 @@ import {
 var hasAcceptedTermsAndConditions = false;
 
 export const handleTermsAndConditions = async (callbackData, chatId, env) => {
-	const response = `For your own safety, please confirm that you have read and accepted our Terms and Conditions ${TERMS_AND_CONDITIONS_LINK} before proceeding`;
+	const response = `For your own safety, please confirm that you have read and accepted our ${
+		callbackData === REGISTER_KRAFT ? 'VENDOR' : 'CLIENT'
+	} Terms and Conditions ${TERMS_AND_CONDITIONS_LINK} before proceeding`;
 	const keyboard = {
 		inline_keyboard: [
 			[{ text: 'Proceed', callback_data: callbackData === REGISTER_KRAFT ? ACCEPT_TERMS_THEN_REGISTER : ACCEPT_TERMS_THEN_BOOK }],
@@ -23,14 +25,14 @@ export const handleTermsAndConditions = async (callbackData, chatId, env) => {
 
 export const handleBookArtisan = async (chatId, env) => {
 	hasAcceptedTermsAndConditions = true;
-	const response = "Thanks for accepting those. \nNow, let's hook you up 👻 \nWhat kind of service do you need? ⚗️";
+	const response = "Great! Now, let's hook you up 👻 \nWhat kind of service do you need? ⚗️";
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, listOfArtisans);
 };
 
 export const handleRegisterArtisan = async (chatId, env) => {
 	hasAcceptedTermsAndConditions = true;
 	const response =
-		"Thanks for accepting those. \nThis is when we would set up your profile 👻 but for now why don't you try booking a service?🦊";
+		"Awesome! This is right when we would set up your profile 👻 but for now why don't you try booking a service?🦊";
 	const keyboard = {
 		inline_keyboard: [[{ text: 'Book a Kraft 🔗', callback_data: BOOK_A_KRAFT }]],
 	};
