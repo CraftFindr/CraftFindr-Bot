@@ -5,7 +5,9 @@ import {
 	handleRegisterArtisan,
 	handleSelectedArtisan,
 	handleSelectedArtisanNearMe,
-	handleSelectedTimeSlot
+	handleSelectedTimeSlot,
+	handleBookingConfirmed,
+	handleBookingCancelled,
 } from './queryHandlers.js';
 
 export const TERMS_AND_CONDITIONS_LINK = '{insert_link}';
@@ -15,6 +17,8 @@ export const REGISTER_KRAFT = 'RegisterKraft';
 export const BOOK_A_KRAFT = 'BookAKraft';
 export const BOOKING_CONFIRMED = 'BookingConfirmed';
 export const BOOKING_CANCELLED = 'BookingCancelled';
+export const BOOKING_FAILED = 'BookingFailed';
+export const BOOKING_REJECTED = 'BookingRejected';
 
 export async function handleWebhook(request, env) {
 	if (request.method === 'GET') {
@@ -78,6 +82,11 @@ async function handleCallbackQuery(query, env) {
 		case ACCEPT_TERMS_THEN_REGISTER:
 			await handleRegisterArtisan(chatId, env);
 			break;
+		case BOOKING_CONFIRMED:
+			await handleBookingConfirmed(chatId, env);
+			break;
+		case BOOKING_CANCELLED:
+			await handleBookingCancelled(chatId, env);
 		default:
 			if (callbackData.includes('selectedArtisan')) {
 				await handleSelectedArtisan(callbackData, chatId, env);

@@ -8,7 +8,7 @@ export const listOfArtisans = {
 		],
 		[
 			{ text: 'Chef 🧑‍🍳', callback_data: 'selectedArtisan:Chef' },
-			{ text: 'Nanny 🤱', callback_data: 'selectedArtisan Nanny' },
+			{ text: 'Nanny 🤱', callback_data: 'selectedArtisan:Nanny' },
 		],
 		[
 			{ text: 'Makeup Artist 💄', callback_data: 'selectedArtisan:Makeup Artist' },
@@ -38,8 +38,8 @@ export const listOfSlots = {
 export const confirmOrCancelBooking = {
 	inline_keyboard: [
 		[
-			{ text: 'Confirm Booking', callback_data: BOOKING_CONFIRMED },
-			{ text: 'Cancel Booking', callback_data: BOOKING_CANCELLED },
+			{ text: 'Cancel', callback_data: 'BookingCancelled' },
+			{ text: 'Confirm Booking 🏷️', callback_data: 'BookingConfirmed' },
 		],
 	],
 };

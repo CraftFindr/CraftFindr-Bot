@@ -1,7 +1,13 @@
 import { confirmOrCancelBooking, listOfArtisans, listOfSlots } from '../keyboards.js';
 import { listArtisansByDistance } from '../listArtisansByDistance.js';
 import { sendMessage, sendMessageWithKeyboard } from './messageSender.js';
-import { TERMS_AND_CONDITIONS_LINK, ACCEPT_TERMS_THEN_BOOK, ACCEPT_TERMS_THEN_REGISTER, REGISTER_KRAFT } from './messageHandlers.js';
+import {
+	TERMS_AND_CONDITIONS_LINK,
+	ACCEPT_TERMS_THEN_BOOK,
+	ACCEPT_TERMS_THEN_REGISTER,
+	REGISTER_KRAFT,
+	BOOK_A_KRAFT,
+} from './messageHandlers.js';
 
 var hasAcceptedTermsAndConditions = false;
 
@@ -23,8 +29,12 @@ export const handleBookArtisan = async (chatId, env) => {
 
 export const handleRegisterArtisan = async (chatId, env) => {
 	hasAcceptedTermsAndConditions = true;
-	const response = 'Thanks for accepting those. \nThis is when we would set up your profile 👻 \nThat feature is coming soon!';
-	await sendMessage(env.API_KEY, chatId, response);
+	const response =
+		"Thanks for accepting those. \nThis is when we would set up your profile 👻 but for now why don't you try booking a service?🦊";
+	const keyboard = {
+		inline_keyboard: [[{ text: 'Book a Kraft 🔗', callback_data: BOOK_A_KRAFT }]],
+	};
+	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
 };
 
 export const handleSelectedArtisan = async (callbackData, chatId, env) => {
@@ -48,7 +58,20 @@ export const handleSelectedArtisanNearMe = async (callbackData, chatId, env) => 
 
 export const handleSelectedTimeSlot = async (callbackData, chatId, env) => {
 	const response = `Almost there ⏳ \nTheir price starts at N2000 for this service. \nPlease note that this price is subject to change depending on any additional costs post booking 📬`;
-	console.log('sending keyboard...');
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, confirmOrCancelBooking);
-	console.log('keyboard sent after receiving callBack: ', callbackData);
+};
+
+export const handleBookingConfirmed = async (chatId, env) => {
+	await sendMessage(env.API_KEY, chatId, 'Booking Confirmed 😋 \nThanks for using CraftFindr. The vendor will be with you shortly.');
+};
+
+export const handleBookingCancelled = async (chatId, env) => {
+	const response = 'Booking Cancelled 🥲 \n What else can I do for you?';
+	const keyboard = {
+		inline_keyboard: [
+			[{ text: 'Register your Kraft 🏷️', callback_data: REGISTER_KRAFT }],
+			[{ text: 'Book a Kraft 🔗', callback_data: BOOK_A_KRAFT }],
+		],
+	};
+	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
 };
