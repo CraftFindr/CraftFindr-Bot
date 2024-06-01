@@ -1,5 +1,3 @@
-import { BOOKING_CANCELLED, BOOKING_CONFIRMED } from './handlers/messageHandlers';
-
 export const listOfArtisans = {
 	inline_keyboard: [
 		[
@@ -14,6 +12,24 @@ export const listOfArtisans = {
 			{ text: 'Makeup Artist 💄', callback_data: 'selectedArtisan:Makeup Artist' },
 			{ text: 'Others ?', callback_data: 'selectedArtisan:Others' },
 		],
+	],
+};
+
+export const listOfVendors = {
+	inline_keyboard: [
+		[
+			{ text: 'Olamide', callback_data: 'selectedVendor::Olamide' },
+			{ text: 'Favour', callback_data: 'selectedVendor::Favour' },
+		],
+		[
+			{ text: 'Subomi', callback_data: 'selectedVendor::Subomi' },
+			{ text: 'Onyeka', callback_data: 'selectedVendor::Onyeka' },
+		],
+		[
+			{ text: 'Mesoma', callback_data: 'selectedVendor::Mesoma' },
+			{ text: 'Chibuzor', callback_data: 'selectedVendor::Chibuzor' },
+		],
+		[{ text: 'Mike', callback_data: 'selectedVendor::Mike' }],
 	],
 };
 
@@ -39,7 +55,7 @@ export const confirmOrCancelBooking = {
 	inline_keyboard: [
 		[
 			{ text: 'Cancel', callback_data: 'BookingCancelled' },
-			{ text: 'Confirm Booking 🏷️', callback_data: 'BookingConfirmed' },
+			{ text: 'Confirm 🏷️', callback_data: 'BookingConfirmed' },
 		],
 	],
 };

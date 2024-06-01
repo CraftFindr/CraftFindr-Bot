@@ -4,10 +4,12 @@ import {
 	handleBookArtisan,
 	handleRegisterArtisan,
 	handleSelectedArtisan,
-	handleSelectedArtisanNearMe,
-	handleSelectedTimeSlot,
+	handleConfirmOrCancelBooking,
 	handleBookingConfirmed,
 	handleBookingCancelled,
+	handleLocationAccessDenied,
+	handleGetArtisansNearMe,
+	listSelectedArtisanTimeSlots,
 } from './queryHandlers.js';
 
 export const TERMS_AND_CONDITIONS_LINK = '{insert_link}';
@@ -19,6 +21,8 @@ export const BOOKING_CONFIRMED = 'BookingConfirmed';
 export const BOOKING_CANCELLED = 'BookingCancelled';
 export const BOOKING_FAILED = 'BookingFailed';
 export const BOOKING_REJECTED = 'BookingRejected';
+export const LOCATION_ACCESS_DENIED = 'locationAccessDenied';
+export const LOCATION_ACCESS_GRANTED = 'locationAccessGranted';
 
 export async function handleWebhook(request, env) {
 	if (request.method === 'GET') {
@@ -87,15 +91,21 @@ async function handleCallbackQuery(query, env) {
 			break;
 		case BOOKING_CANCELLED:
 			await handleBookingCancelled(chatId, env);
+			break;
+		case LOCATION_ACCESS_DENIED:
+			await handleLocationAccessDenied(chatId, env);
 		default:
 			if (callbackData.includes('selectedArtisan')) {
 				await handleSelectedArtisan(callbackData, chatId, env);
 			}
-			if (callbackData.includes('artisanNearMe')) {
-				await handleSelectedArtisanNearMe(callbackData, chatId, env);
+			if (callbackData.includes(LOCATION_ACCESS_GRANTED)) {
+				await handleGetArtisansNearMe(callbackData, chatId, env);
+			}
+			if (callbackData.includes('selectedVendor' || 'artisanNearMe')) {
+				await listSelectedArtisanTimeSlots(callbackData, chatId, env);
 			}
 			if (callbackData.includes('selectedTimeSlot')) {
-				await handleSelectedTimeSlot(callbackData, chatId, env);
+				await handleConfirmOrCancelBooking(callbackData, chatId, env);
 			}
 			break;
 	}
