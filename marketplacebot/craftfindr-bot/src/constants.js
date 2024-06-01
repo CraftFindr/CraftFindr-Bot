@@ -1,0 +1,14 @@
+export const TERMS_AND_CONDITIONS_LINK = '{insert_link}';
+export const ACCEPT_TERMS_THEN_BOOK = 'hasAcceptedTermsAndConditionsToBook';
+export const ACCEPT_TERMS_THEN_REGISTER = 'hasAcceptedTermsAndConditionsToRegister';
+export const REGISTER_KRAFT = 'RegisterKraft';
+export const BOOK_A_KRAFT = 'BookAKraft';
+export const BOOKING_CONFIRMED = 'BookingConfirmed';
+export const BOOKING_CANCELLED = 'BookingCancelled';
+export const BOOKING_FAILED = 'BookingFailed';
+export const BOOKING_REJECTED = 'BookingRejected';
+export const LOCATION_ACCESS_DENIED = 'locationAccessDenied';
+export const LOCATION_ACCESS_GRANTED = 'locationAccessGranted';
+export const SELECTED_ARTISAN = 'selectedArtisan';
+export const ARTISAN_NEAR_ME = 'artisanNearMe';
+export const SELECTED_TIME_SLOT = 'selectedTimeSlot';

@@ -1,6 +1,6 @@
 import { confirmOrCancelBooking, listOfArtisans, listOfSlots, listOfVendors } from '../keyboards.js';
 import { listArtisansByDistance } from '../listArtisansByDistance.js';
-import { sendMessage, sendMessageWithKeyboard } from './messageSender.js';
+import { sendMessage, sendMessageWithKeyboard, sendLocationRequest } from './messageSender.js';
 import {
 	TERMS_AND_CONDITIONS_LINK,
 	ACCEPT_TERMS_THEN_BOOK,
@@ -9,9 +9,10 @@ import {
 	BOOK_A_KRAFT,
 	LOCATION_ACCESS_GRANTED,
 	LOCATION_ACCESS_DENIED,
-} from './messageHandlers.js';
+} from '../constants.js';
 
 var hasAcceptedTermsAndConditions = false;
+var requestedArtisan = '';
 
 export const handleTermsAndConditions = async (callbackData, chatId, env) => {
 	const response = `For your own safety, please confirm that you have read and accepted our ${
@@ -45,22 +46,43 @@ export const handleSelectedArtisan = async (callbackData, chatId, env) => {
 	const response = "We'll need your location access to find your nearest artisan 🗺️";
 	const keyboard = {
 		inline_keyboard: [
-			[{ text: 'Cancel', callback_data: LOCATION_ACCESS_DENIED }],
 			[{ text: 'OK', callback_data: `${LOCATION_ACCESS_GRANTED}:${artisan}` }],
+			[{ text: 'Cancel', callback_data: LOCATION_ACCESS_DENIED }],
 		],
 	};
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
 };
 
-export const handleGetArtisansNearMe = async (callbackData, chatId, env) => {
-	const selected = callbackData.split(':')[1];
-	let response = `These are the ${selected}s closest to you 👇`;
+export const requestUserLocation = async (callbackData, chatId, env) => {
+	const response = 'Please share your location to find artisans closest to you:';
+	requestedArtisan = callbackData.split(':')[1];
+	const keyboard = {
+		reply_markup: {
+			keyboard: [[{ text: 'Share Location', request_location: true }]],
+			one_time_keyboard: true,
+			resize_keyboard: true,
+		},
+	};
+	await sendLocationRequest(env.API_KEY, chatId, response, keyboard);
+};
 
-	if (selected === 'Others') {
+export const handleLocation = async (location, chatId, env) => {
+	const { latitude, longitude } = location;
+	const response = `Received your location 👾 \nSearching for artisans...`;
+	await sendMessage(env.API_KEY, chatId, response);
+	await handleGetArtisansNearMe(`location-${latitude}-${longitude}`, chatId, env);
+};
+
+export const handleGetArtisansNearMe = async (callbackData, chatId, env) => {
+	const lat = callbackData.split('-')[1];
+	const long = callbackData.split('-')[2];
+	let response = `These are the ${requestedArtisan}s closest to you (lat: ${lat}, long: ${long}) 👇`;
+
+	if (requestedArtisan === 'Others') {
 		response = 'This feature is coming soon! 🚧 \nYou can still book any of the below services🔻';
 		await sendMessageWithKeyboard(env.API_KEY, chatId, response, listOfArtisans);
 	} else {
-		const keyboard = listArtisansByDistance(selected);
+		const keyboard = listArtisansByDistance(requestedArtisan);
 		await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
 	}
 };

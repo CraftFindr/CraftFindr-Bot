@@ -1,4 +1,4 @@
-import { handleWebhook } from './handlers/messageHandlers.js';
+import { handleWebhook } from './handlers/webhookHandler.js';
 
 export default {
 	async fetch(request, env, context) {
