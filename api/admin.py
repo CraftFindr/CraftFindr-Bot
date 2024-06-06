@@ -1,6 +1,6 @@
 from django.contrib import admin
-from api.models import Service, Artisan, Order
+from api.models import User, ArtisanProfile, ServiceCategory
 
-admin.site.register(Artisan)
-admin.site.register(Service)
-admin.site.register(Order)
+admin.site.register(User)
+admin.site.register(ArtisanProfile)
+admin.site.register(ServiceCategory)

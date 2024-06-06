@@ -5,7 +5,6 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
-from django_cryptography.fields import encrypt
 class UserManager(BaseUserManager):
     def create_user(self, telegram_id, username=None, password=None, **extra_fields):
         if not telegram_id:
@@ -24,7 +23,7 @@ class UserManager(BaseUserManager):
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
         return self.create_user(telegram_id, username, password, **extra_fields)
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin): 
     telegram_id = models.BigIntegerField(unique=True)
     first_name = models.CharField(max_length=150, null=True, blank=True)
     last_name = models.CharField(max_length=150, null=True, blank=True)
