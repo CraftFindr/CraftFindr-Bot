@@ -5,6 +5,8 @@ from api.models import ArtisanProfile
 from api.models import User
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
+from .serializers import ServiceCategorySerializer
+
 def handle_user_registration(update: Update, context: CallbackContext):
     # Accessing user information from the update object
     telegram_user = update.message.from_user
@@ -59,12 +61,17 @@ def main():
     updater.idle()
 if __name__ == "__main__":
     main()
+
 class ArtisanListApi(APIView):
-    class OutPutSerializer(serializers.Serializer):
-        username = serializers.CharField(max_length=100)
-        # services_offered = serializers.CharField(max_length=100)
-        phone_number = serializers.CharField(max_length=15)
-    # extract this into a selector later
+    class OutPutSerializer(serializers.ModelSerializer):
+        user = serializers.CharField(source='user.username')
+        service_categories = ServiceCategorySerializer(many=True, read_only=True)
+
+        class Meta:
+            model = ArtisanProfile
+            fields = ['user', 'bio', 'rating', 'service_categories']
+
     def get(self, request):
-        artisans = self.OutPutSerializer(ArtisanProfile.objects.all(), many=True)
-        return Response(artisans.data)
+        artisans = ArtisanProfile.objects.all()
+        serializer = self.OutPutSerializer(artisans, many=True)
+        return Response(serializer.data)

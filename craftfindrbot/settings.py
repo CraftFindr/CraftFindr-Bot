@@ -28,7 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 # (dev) setting my user model for django
-AUTH_USER_MODEL = 'api.Artisan'
+AUTH_USER_MODEL = 'api.User'
 
 # Application definition
 
