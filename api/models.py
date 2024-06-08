@@ -71,12 +71,14 @@ class ServiceRequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"Request {self.id} by {self.customer.username}"
+    
 class Chat(models.Model):
     service_request = models.ForeignKey(ServiceRequest, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"Chat for request {self.service_request.id}"
+    
 class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

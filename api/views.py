@@ -7,7 +7,6 @@ from .serializers import ServiceCategorySerializer
 class UserListAPI(APIView):
     class OutPutSerializer(serializers.ModelSerializer):
         service_categories = ServiceCategorySerializer(many=True, read_only=True)
-
         class Meta:
             model = User
             fields = ['telegram_id',  'username', 'bio', 'rating', 'service_categories', 'is_artisan']
@@ -20,7 +19,6 @@ class UserListAPI(APIView):
 class ArtisanListApi(APIView):
     class OutPutSerializer(serializers.ModelSerializer):
         service_categories = ServiceCategorySerializer(many=True, read_only=True)
-
         class Meta:
             model = User
             fields = ['telegram_id',  'username', 'bio', 'rating', 'service_categories', 'is_artisan']
@@ -47,6 +45,7 @@ class UserCreateView(APIView):
         def create(self, validated_data):
             user = User.objects.create_user(**validated_data)
             return user 
+        
     def get(self, request):
         return Response("Enter username, telegram_id and password to register", status=status.HTTP_200_OK)
     
