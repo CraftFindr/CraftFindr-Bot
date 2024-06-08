@@ -46,16 +46,6 @@ class ServiceCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     def __str__(self):
         return self.name
-    
-# class ArtisanProfile(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     bio = models.TextField(null=True, blank=True)
-#     rating = models.FloatField(default=0)
-#     service_categories = models.ManyToManyField(
-#         ServiceCategory, related_name="artisans"
-#     )
-#     def __str__(self):
-#         return f"Profile of {self.user.username}"
 
 class ServiceRequest(models.Model):
     STATUS_CHOICES = [
