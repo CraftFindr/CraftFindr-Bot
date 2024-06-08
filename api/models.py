@@ -23,8 +23,9 @@ class UserManager(BaseUserManager):
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
         return self.create_user(telegram_id, username, password, **extra_fields)
+    
 class User(AbstractBaseUser, PermissionsMixin): 
-    telegram_id = models.BigIntegerField(unique=True)
+    telegram_id = models.IntegerField(unique=True)
     first_name = models.CharField(max_length=150, null=True, blank=True)
     last_name = models.CharField(max_length=150, null=True, blank=True)
     username = models.CharField(max_length=150, null=True, blank=True)
@@ -33,24 +34,29 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    bio = models.TextField(null=True, blank=True)
+    rating = models.FloatField(default=0)
     objects = UserManager()
     USERNAME_FIELD = "telegram_id"
     REQUIRED_FIELDS = ["username"]
     def __str__(self):
         return self.username or str(self.telegram_id)
-class ArtisanProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    bio = models.TextField(null=True, blank=True)
-    rating = models.FloatField(default=0)
-    service_categories = models.ManyToManyField(
-        "ServiceCategory", related_name="artisans"
-    )
-    def __str__(self):
-        return f"Profile of {self.user.username}"
+
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     def __str__(self):
         return self.name
+    
+# class ArtisanProfile(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     bio = models.TextField(null=True, blank=True)
+#     rating = models.FloatField(default=0)
+#     service_categories = models.ManyToManyField(
+#         ServiceCategory, related_name="artisans"
+#     )
+#     def __str__(self):
+#         return f"Profile of {self.user.username}"
+
 class ServiceRequest(models.Model):
     STATUS_CHOICES = [
         ("pending", "Pending"),
