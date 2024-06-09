@@ -9,18 +9,26 @@ import {
 	BOOK_A_KRAFT,
 	LOCATION_ACCESS_GRANTED,
 	LOCATION_ACCESS_DENIED,
+	REJECT_TERMS
 } from '../constants.js';
+import { checkAcceptedTerms } from '../supabase/selectors.js';
 
 var hasAcceptedTermsAndConditions = false;
 var requestedArtisan = '';
 
-export const handleTermsAndConditions = async (callbackData, chatId, env) => {
-	const response = `For your own safety, please confirm that you have read and accepted our ${
-		callbackData === REGISTER_KRAFT ? 'VENDOR' : 'CLIENT'
-	} Terms and Conditions ${TERMS_AND_CONDITIONS_LINK} before proceeding`;
+export const handleTermsAndConditions = async (callbackData, chat, env) => {
+	const chatId = chat.id;
+	let terms_for_who = callbackData === REGISTER_KRAFT ? 'VENDOR' : 'CLIENT';
+	const response = `For your own safety, please confirm that you have read and accepted our ${terms_for_who} Terms and Conditions ${TERMS_AND_CONDITIONS_LINK} before proceeding`;
+
+	// await checkAcceptedTerms(chatId, env);
+
 	const keyboard = {
 		inline_keyboard: [
-			[{ text: 'Proceed', callback_data: callbackData === REGISTER_KRAFT ? ACCEPT_TERMS_THEN_REGISTER : ACCEPT_TERMS_THEN_BOOK }],
+			[
+				{ text: 'Cancel', callback_data: callbackData === REJECT_TERMS },
+				{ text: 'Proceed', callback_data: callbackData === REGISTER_KRAFT ? ACCEPT_TERMS_THEN_REGISTER : ACCEPT_TERMS_THEN_BOOK },
+			],
 		],
 	};
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);

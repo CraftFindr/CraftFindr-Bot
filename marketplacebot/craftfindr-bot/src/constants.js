@@ -1,6 +1,7 @@
 export const TERMS_AND_CONDITIONS_LINK = '{insert_link}';
 export const ACCEPT_TERMS_THEN_BOOK = 'hasAcceptedTermsAndConditionsToBook';
 export const ACCEPT_TERMS_THEN_REGISTER = 'hasAcceptedTermsAndConditionsToRegister';
+export const REJECT_TERMS = 'rejectedTermsAndConditions';
 export const REGISTER_KRAFT = 'RegisterKraft';
 export const BOOK_A_KRAFT = 'BookAKraft';
 export const BOOKING_CONFIRMED = 'BookingConfirmed';

@@ -11,8 +11,10 @@ import {
 	ARTISAN_NEAR_ME,
 	SELECTED_ARTISAN,
 	SELECTED_TIME_SLOT,
+	REJECT_TERMS,
 } from '../constants.js';
 import { storeMessage } from '../supabase/storeMessage.js';
+import { addUserToDB } from '../supabase/services.js';
 
 // Message Sending Functions
 import { sendMessageWithKeyboard, sendMessage } from './messageSender.js';
@@ -67,7 +69,6 @@ async function handleIncomingMessage(message, env) {
 async function handleMessage(message, env) {
 	const chat = message.chat;
 	const input = String(message.text);
-	const userFirstname = String(message.from.first_name);
 
 	switch (input) {
 		case '/help':
@@ -77,7 +78,7 @@ async function handleMessage(message, env) {
 			await sendStartMessage(chat.id, env);
 			break;
 		default:
-			await sendDefaultMessage(message, userFirstname, env);
+			await sendDefaultMessage(message, env);
 			break;
 	}
 
@@ -97,21 +98,39 @@ async function sendStartMessage(chatId, env) {
 			[{ text: 'Book a Service 🔗', callback_data: BOOK_A_KRAFT }],
 		],
 	};
+
+	await addUserToDB(chatId, env);
+	// await addUserToDB(chatId, env)
+	// 	.then(async (res) => {
+	// 		const result = await res.json();
+	// 		if (result.already_exists) {
+	// 			console.log('THE USER IS THEREEEE ALREADY', result.message);
+	// 		} else {
+	// 			console.log('USER NOT THERE', result.message);
+	// 		}
+	// 	})
+	// 	.catch((err) => {
+	// 		console.error('Error: ', err);
+	// 	});
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
 }
 
-async function sendDefaultMessage(message, userFirstname, env) {
+async function sendDefaultMessage(message, env) {
+	const userFirstname = String(message.from.first_name);
 	const response = `Hi, ${userFirstname} click /start to get started`;
 	await storeMessage(message, env);
 	await sendMessage(env.API_KEY, message.chat.id, response);
 }
 
 async function handleCallbackQuery(query, env) {
+	const chat = query.message.chat;
 	const chatId = query.message.chat.id;
 	const callbackData = String(query.data);
 
 	if (callbackData === REGISTER_KRAFT || callbackData === BOOK_A_KRAFT) {
-		await handleTermsAndConditions(callbackData, chatId, env);
+		await handleTermsAndConditions(callbackData, chat, env);
+	} else if (callbackData === REJECT_TERMS) {
+		await sendStartMessage(chatId, env);
 	} else if (callbackData === ACCEPT_TERMS_THEN_BOOK) {
 		await handleBookArtisan(chatId, env);
 	} else if (callbackData === ACCEPT_TERMS_THEN_REGISTER) {
