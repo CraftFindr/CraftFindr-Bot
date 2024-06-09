@@ -12,6 +12,7 @@ import {
 	SELECTED_ARTISAN,
 	SELECTED_TIME_SLOT,
 } from '../constants.js';
+import { storeMessage } from '../supabase/storeMessage.js';
 
 // Message Sending Functions
 import { sendMessageWithKeyboard, sendMessage } from './messageSender.js';
@@ -64,19 +65,19 @@ async function handleIncomingMessage(message, env) {
 }
 
 async function handleMessage(message, env) {
-	const chatId = message.chat.id;
+	const chat = message.chat;
 	const input = String(message.text);
 	const userFirstname = String(message.from.first_name);
 
 	switch (input) {
 		case '/help':
-			await sendHelpMessage(chatId, env);
+			await sendHelpMessage(chat.id, env);
 			break;
 		case '/start':
-			await sendStartMessage(chatId, env);
+			await sendStartMessage(chat.id, env);
 			break;
 		default:
-			await sendDefaultMessage(chatId, userFirstname, env);
+			await sendDefaultMessage(message, userFirstname, env);
 			break;
 	}
 
@@ -99,9 +100,10 @@ async function sendStartMessage(chatId, env) {
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
 }
 
-async function sendDefaultMessage(chatId, userFirstname, env) {
+async function sendDefaultMessage(message, userFirstname, env) {
 	const response = `Hi, ${userFirstname} click /start to get started`;
-	await sendMessage(env.API_KEY, chatId, response);
+	await storeMessage(message, env);
+	await sendMessage(env.API_KEY, message.chat.id, response);
 }
 
 async function handleCallbackQuery(query, env) {
