@@ -41,14 +41,22 @@ export const acceptTermsAndConditions = async (acceptFor, chatId, env) => {
 		const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
 		if (acceptFor == 'ARTISAN') {
-			const { error } = await supabase.from('Users').update({ accepted_vendor_terms_and_conditions: true }).eq('chat_id', chatId).select();
+			const { error } = await supabase
+				.from('Users')
+				.update({ has_accepted_vendor_terms_and_conditions: true })
+				.eq('chat_id', chatId)
+				.select();
 
 			if (error) {
 				console.error('Error updating artisan TERMS AND CONDITIONS status in DB:', error);
 				return errorResponse({ error: error.message });
 			}
 		} else {
-			const { error } = await supabase.from('Users').update({ accepted_terms_and_conditions: true }).eq('chat_id', chatId).select();
+			const { error } = await supabase
+				.from('Users')
+				.update({ has_accepted_client_terms_and_conditions: true })
+				.eq('chat_id', chatId)
+				.select();
 			if (error) {
 				console.error('Error updating client TERMS AND CONDITIONS status in DB:', error);
 				return errorResponse({ error: error.message });
@@ -109,15 +117,36 @@ export const storeLocationToDB = async (latitude, longitude, chatId, env) => {
 	try {
 		const location = `${latitude},${longitude}`;
 		const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
-		const { error } = supabase.from('Users').update({ location: location }).eq('chat_id', chatId);
+		const { error } = await supabase.from('Users').update({ location: location }).eq('chat_id', chatId);
 
 		if (error) {
 			console.error('Error updating location in DB:', error);
 			return errorResponse({ error: error.message });
 		}
 
-		console.log('Successfully updated user location in DB.');
+		console.log('Successfully updated user location in DB.', location);
 		return successResponse({ message: 'User location has been successfully updated in DB.' });
+	} catch (err) {
+		console.error('Unexpected error:', err);
+		return errorResponse({ error: err.message });
+	}
+};
+
+export const storePhoneNumberToDB = async (phoneNumber, chatId, env) => {
+	try {
+		const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
+		const { error } = await supabase
+			.from('Users')
+			.update({ phone_number: Number(phoneNumber) })
+			.eq('chat_id', chatId);
+
+		if (error) {
+			console.error('Error updating phone number in DB:', error);
+			return errorResponse({ error: error.message });
+		}
+
+		console.log('Successfully updated user phone number in DB.', phoneNumber);
+		return successResponse({ message: 'User phone number has been successfully updated in DB.' });
 	} catch (err) {
 		console.error('Unexpected error:', err);
 		return errorResponse({ error: err.message });

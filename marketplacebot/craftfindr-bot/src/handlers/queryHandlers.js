@@ -1,6 +1,5 @@
 import { confirmOrCancelBooking, listOfArtisans, listOfSlots, listOfVendors } from '../keyboards.js';
-import { listArtisansByDistance } from '../listArtisansByDistance.js';
-import { sendMessage, sendMessageWithKeyboard, sendLocationRequest } from './messageSender.js';
+import { sendMessage, sendMessageWithKeyboard, sendLocationRequest, sendContactRequest } from './messageSender.js';
 
 import {
 	TERMS_AND_CONDITIONS_LINK,
@@ -79,10 +78,12 @@ export const selectArtisanServicesToOffer = async (chatId, env) => {
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
 };
 
-export const handleGetArtisanLocation = async (callbackData, chatId, env) => {
+export const handleGetArtisanContact = async (callbackData, chatId, env) => {
 	const selectedService = callbackData.split('::')[1];
 	await storeServiceToDB(selectedService, chatId, env);
-
+	await requestUserContact(chatId, env);
+};
+export const handleGetArtisanLocation = async (chatId, env) => {
 	const response = "Nice, now we'll need your location to help clients find you easily 🗺️";
 	const keyboard = {
 		inline_keyboard: [
@@ -105,9 +106,8 @@ export const handleSelectedArtisan = async (callbackData, chatId, env) => {
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
 };
 
-export const requestUserLocation = async (callbackData, chatId, env) => {
+export const requestUserLocation = async (chatId, env) => {
 	const response = 'Please share your location';
-	requestedArtisan = callbackData.split(':')[1];
 	const keyboard = {
 		reply_markup: {
 			keyboard: [[{ text: 'Share Location', request_location: true }]],
@@ -116,6 +116,18 @@ export const requestUserLocation = async (callbackData, chatId, env) => {
 		},
 	};
 	await sendLocationRequest(env.API_KEY, chatId, response, keyboard);
+};
+
+export const requestUserContact = async (chatId, env) => {
+	const response = 'How should we contact you? 😊';
+	const keyboard = {
+		reply_markup: {
+			keyboard: [[{ text: 'Share Contact', request_contact: true }]],
+			one_time_keyboard: true,
+			resize_keyboard: true,
+		},
+	};
+	await sendContactRequest(env.API_KEY, chatId, response, keyboard);
 };
 
 export const handleLocation = async (location, chatId, env) => {

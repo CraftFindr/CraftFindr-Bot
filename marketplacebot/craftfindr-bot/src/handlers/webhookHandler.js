@@ -15,7 +15,7 @@ import {
 	REJECT_TERMS,
 	SET_UP_PROFILE,
 } from '../constants.js';
-import { addUserToDB, registerArtisanDisplayName } from '../supabase/services.js';
+import { addUserToDB, registerArtisanDisplayName, storePhoneNumberToDB } from '../supabase/services.js';
 
 // Messaging Functions
 import { sendMessageWithKeyboard, sendMessage } from './messageSender.js';
@@ -27,7 +27,7 @@ import {
 	handleRegisterArtisan,
 	handleSetupArtisanProfile,
 	confirmArtisanDisplayName,
-	handleGetArtisanLocation,
+	handleGetArtisanContact,
 	handleSelectedArtisan,
 	handleConfirmOrCancelBooking,
 	handleBookingConfirmed,
@@ -68,6 +68,14 @@ async function handleIncomingMessage(message, env) {
 			console.log('Username saved: ', username);
 			return new Response('OK');
 		}
+	}
+
+	if ('contact' in message) {
+		const phone_number = message.contact.phone_number;
+		console.log('Contact is:', phone_number);
+		await storePhoneNumberToDB(phone_number, chatId, env);
+		await requestUserLocation(chatId, env);
+		return new Response('OK');
 	}
 
 	if ('location' in message) {
@@ -150,7 +158,7 @@ async function handleCallbackQuery(query, env) {
 	} else if (callbackData.includes(SELECTED_ARTISAN)) {
 		await handleSelectedArtisan(callbackData, chatId, env);
 	} else if (callbackData.includes(HAS_SELECTED_A_SERVICE_TO_OFFER)) {
-		await handleGetArtisanLocation(callbackData, chatId, env);
+		await handleGetArtisanContact(callbackData, chatId, env);
 	} else if (callbackData.includes(LOCATION_ACCESS_GRANTED)) {
 		await requestUserLocation(callbackData, chatId, env);
 	} else if (callbackData.includes(LOCATION_ACCESS_DENIED)) {
