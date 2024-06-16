@@ -5,7 +5,7 @@ export const listOfArtisans = {
 			{ text: 'Plumber 🔧', callback_data: 'selectedArtisan:Plumber' },
 		],
 		[
-			{ text: 'Chef 🧑‍🍳', callback_data: 'selectedArtisan:Chef' },
+			{ text: 'Nail Technicians 💅', callback_data: 'selectedArtisan:Nail Technician' },
 			{ text: 'Nanny 🤱', callback_data: 'selectedArtisan:Nanny' },
 		],
 		[

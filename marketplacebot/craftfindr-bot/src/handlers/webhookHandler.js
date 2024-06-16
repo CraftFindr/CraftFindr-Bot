@@ -57,6 +57,7 @@ export async function handleWebhook(request, env) {
 
 	return new Response('OK');
 }
+
 async function handleIncomingMessage(message, env) {
 	const chatId = message.chat.id;
 
@@ -160,7 +161,7 @@ async function handleCallbackQuery(query, env) {
 	} else if (callbackData.includes(HAS_SELECTED_A_SERVICE_TO_OFFER)) {
 		await handleGetArtisanContact(callbackData, chatId, env);
 	} else if (callbackData.includes(LOCATION_ACCESS_GRANTED)) {
-		await requestUserLocation(callbackData, chatId, env);
+		await requestUserLocation(chatId, env);
 	} else if (callbackData.includes(LOCATION_ACCESS_DENIED)) {
 		await handleLocationAccessDenied(chatId, env);
 	} else if (callbackData.includes(ARTISAN_NEAR_ME)) {

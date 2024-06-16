@@ -31,6 +31,7 @@ export const listServicesToOffer = async (env) => {
 
 			inlineKeyboard.push(row);
 		}
+
 		return {
 			inline_keyboard: inlineKeyboard,
 		};
