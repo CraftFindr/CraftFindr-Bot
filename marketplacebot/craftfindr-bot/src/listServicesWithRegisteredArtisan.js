@@ -47,7 +47,6 @@ export const listServicesWithRegisteredArtisan = async (env) => {
 
 			inlineKeyboard.push(row);
 		}
-		inlineKeyboard.push([{ text: 'Others', callback_data: `selectedArtisan:Others` }]);
 
 		return {
 			inline_keyboard: inlineKeyboard,

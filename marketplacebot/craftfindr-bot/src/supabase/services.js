@@ -68,6 +68,34 @@ export const acceptTermsAndConditions = async (acceptFor, chatId, env) => {
 	}
 };
 
+export const setIsBookingFalse = async (chatId, env) => {
+	try {
+		const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
+		const { error } = await supabase.from('Users').update({ is_booking_now: false }).eq('chat_id', chatId).select();
+		if (error) {
+			console.error('Error updating booking status in DB:', error);
+			return errorResponse({ error: error.message });
+		}
+	} catch (err) {
+		console.error('Unexpected error:', err);
+		return errorResponse({ error: err.message });
+	}
+};
+
+export const setIsBookingTrue = async (chatId, env) => {
+	try {
+		const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
+		const { error } = await supabase.from('Users').update({ is_booking_now: true }).eq('chat_id', chatId).select();
+		if (error) {
+			console.error('Error updating booking status in DB:', error);
+			return errorResponse({ error: error.message });
+		}
+	} catch (err) {
+		console.error('Unexpected error:', err);
+		return errorResponse({ error: err.message });
+	}
+};
+
 export const registerArtisanDisplayName = async (callbackData, chatId, env) => {
 	const username = String(callbackData.slice(1));
 	try {
@@ -92,19 +120,32 @@ export const registerArtisanDisplayName = async (callbackData, chatId, env) => {
 export const storeServiceToDB = async (service, chatId, env) => {
 	try {
 		const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
-		const isServiceAlreadyRegisteredToArtisan = await checkIfServiceAlreadyRegisteredToArtisan(chatId, service, env);
 
-		if (isServiceAlreadyRegisteredToArtisan) {
-			console.log('Service is already registered to artisan.');
-			return successResponse({ message: 'Service is already registered to artisan.' });
-		}
+		await supabase.from('Services').update({ has_registered_artisan: 'TRUE' }).eq('service', service);
 
-		console.log('Registering service to artisan...');
+		console.log('Registering new service to artisan...');
+
 		const { error } = await supabase.from('ArtisanServices').insert({ service: service, artisan_offering_service_by_chat_id: chatId });
+
 		console.log('New service has been registered to artisan on the Services table.');
 
 		if (error) {
 			console.error('Error inserting service into DB:', error);
+			return errorResponse({ error: error.message });
+		}
+	} catch (err) {
+		console.error('Unexpected error:', err);
+		return errorResponse({ error: err.message });
+	}
+};
+
+export const storeRequestedArtisan = async (requestedArtisan, chatId, env) => {
+	try {
+		const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
+		const { error } = await supabase.from('Users').update({ requested_artisan: requestedArtisan }).eq('chat_id', chatId);
+
+		if (error) {
+			console.error('Error updating requested_artisan in DB:', error);
 			return errorResponse({ error: error.message });
 		}
 	} catch (err) {

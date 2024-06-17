@@ -13,17 +13,25 @@ import {
 	SET_UP_PROFILE,
 } from '../constants.js';
 
-import { checkIfUserHasAcceptedTerms, checkIfUserIsArtisan } from '../supabase/selectors.js';
-import { acceptTermsAndConditions, storeLocationToDB, storeServiceToDB } from '../supabase/services.js';
+import { checkIfUserHasAcceptedTerms, checkIfUserIsArtisan, checkIsBooking, getRequestedArtisan } from '../supabase/selectors.js';
+import {
+	acceptTermsAndConditions,
+	setIsBookingFalse,
+	setIsBookingTrue,
+	storeLocationToDB,
+	storeRequestedArtisan,
+	storeServiceToDB,
+} from '../supabase/services.js';
 import { listServicesToOffer } from '../listServicesToOffer.js';
 import { listServicesWithRegisteredArtisan } from '../listServicesWithRegisteredArtisan.js';
+import { listArtisansByDistance } from '../listArtisansByDistance.js';
 
 var requestedArtisan = '';
 
 export const handleTermsAndConditions = async (callbackData, chat, env) => {
 	const chatId = chat.id;
 	let terms_for_who = callbackData === REGISTER_KRAFT ? 'VENDOR' : 'CLIENT';
-	const response = `For your own safety, please confirm that you have read and accepted our ${terms_for_who} Terms and Conditions ${TERMS_AND_CONDITIONS_LINK} before proceeding...`;
+	const response = `There's one little thing...\n \nFor your own safety, please confirm that you have read and accepted our ${terms_for_who} Terms and Conditions ${TERMS_AND_CONDITIONS_LINK} before proceeding...`;
 
 	var hasAccepted = await checkIfUserHasAcceptedTerms(chatId, env);
 	const variation =
@@ -44,12 +52,16 @@ export const handleTermsAndConditions = async (callbackData, chat, env) => {
 
 export const handleBookArtisan = async (acceptFor, chatId, env) => {
 	await acceptTermsAndConditions(acceptFor, chatId, env);
+	await setIsBookingTrue(chatId, env);
 	const response = "Great! Now, let's hook you up 👻 \nWhat kind of service do you need? ⚗️";
 	const keyboard = await listServicesWithRegisteredArtisan(env);
-	console.log('bruhhhhhhhhhhhhhhh', { keyboard });
 
 	if (Object.keys(keyboard).length === 0) {
-		return await sendMessage(env.API_KEY, chatId, "Sorry, we currently don't have any services available right now ;) \nPlease try later");
+		return await sendMessage(
+			env.API_KEY,
+			chatId,
+			"Sorry, we currently don't have any services available right now ;) \nPlease try again later."
+		);
 	}
 
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
@@ -57,6 +69,8 @@ export const handleBookArtisan = async (acceptFor, chatId, env) => {
 
 export const handleRegisterArtisan = async (acceptFor, chatId, env) => {
 	await acceptTermsAndConditions(acceptFor, chatId, env);
+	await setIsBookingFalse(chatId, env);
+
 	const response = "Awesome! Now let's quickly set up your profile 🦊\nThis will help clients find you easier.";
 	const keyboard = {
 		inline_keyboard: [[{ text: 'Proceed', callback_data: SET_UP_PROFILE }]],
@@ -72,9 +86,14 @@ export const handleSetupArtisanProfile = async (chatId, env) => {
 
 export const confirmArtisanDisplayName = async (text, chatId, env) => {
 	const username = text.split('_')[1];
-	const response = `Are you sure you want to use ${username} as your display name?`;
+	const response = `Are you sure you want to use \n\'${username}\' as your display name?`;
 	const keyboard = {
-		inline_keyboard: [[{ text: 'Yes', callback_data: `${text}` }]],
+		inline_keyboard: [
+			[
+				{ text: 'Yes', callback_data: `${text}` },
+				{ text: 'Try again', callback_data: SET_UP_PROFILE },
+			],
+		],
 	};
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
 };
@@ -90,6 +109,7 @@ export const handleGetArtisanContact = async (callbackData, chatId, env) => {
 	await storeServiceToDB(selectedService, chatId, env);
 	await requestUserContact(chatId, env);
 };
+
 export const handleGetArtisanLocation = async (chatId, env) => {
 	const response = "Nice, now we'll need your location to help clients find you easily 🗺️";
 	const keyboard = {
@@ -103,10 +123,12 @@ export const handleGetArtisanLocation = async (chatId, env) => {
 
 export const handleSelectedArtisan = async (callbackData, chatId, env) => {
 	const artisan = callbackData.split(':')[1];
+	await storeRequestedArtisan(artisan, chatId, env);
+
 	const response = "We'll need your location access to find your nearest artisan 🗺️";
 	const keyboard = {
 		inline_keyboard: [
-			[{ text: 'OK', callback_data: `${LOCATION_ACCESS_GRANTED}:${artisan}` }],
+			[{ text: 'OK', callback_data: `${LOCATION_ACCESS_GRANTED}` }],
 			[{ text: 'Cancel', callback_data: LOCATION_ACCESS_DENIED }],
 		],
 	};
@@ -114,7 +136,7 @@ export const handleSelectedArtisan = async (callbackData, chatId, env) => {
 };
 
 export const requestUserLocation = async (chatId, env) => {
-	const response = 'Please share your location';
+	const response = 'Click the Share Location button';
 	const keyboard = {
 		reply_markup: {
 			keyboard: [[{ text: 'Share Location', request_location: true }]],
@@ -140,10 +162,14 @@ export const requestUserContact = async (chatId, env) => {
 export const handleLocation = async (location, chatId, env) => {
 	const { latitude, longitude } = location;
 	const response = `Location Received 👾`;
-	const isUserArtisan = await checkIfUserIsArtisan(chatId, env);
 	await sendMessage(env.API_KEY, chatId, response);
+	const isBooking = await checkIsBooking(chatId, env);
 
-	!isUserArtisan && await sendMessage(env.API_KEY, chatId, "There's currently no artisans near you, please try again later.");
+	if (isBooking) {
+		await handleGetArtisansNearMe(`location-${latitude}-${longitude}`, chatId, env);
+		return;
+	}
+
 	await storeLocationToDB(latitude, longitude, chatId, env);
 	await respondToLocationMessage(chatId, latitude, longitude, env);
 };
@@ -165,12 +191,18 @@ export const respondToLocationMessage = async (chatId, latitude, longitude, env)
 export const handleGetArtisansNearMe = async (callbackData, chatId, env) => {
 	const lat = callbackData.split('-')[1];
 	const long = callbackData.split('-')[2];
-	let response = `These are the ${requestedArtisan}s closest to you (lat: ${lat}, long: ${long}) 👇`;
 
-	// if (requestedArtisan === 'Others') {
-	response = 'Still iterating on this feature... \nThis is coming soon!';
-	//  🚧 \nYou can still book any of the below services🔻
-	await sendMessageWithKeyboard(env.API_KEY, chatId, response);
+	const requestedArtisan = await getRequestedArtisan(chatId, env);
+
+	const response = `These are the ${requestedArtisan}s closest to you 👇`;
+
+	const keyboard = await listArtisansByDistance(requestedArtisan, lat, long, chatId, env);
+
+	if (Object.keys(keyboard).length === 0) {
+		await sendMessage(env.API_KEY, chatId, `Sorry, there's no ${requestedArtisan}s available right now. Please try again later`);
+	} else {
+		await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
+	}
 };
 
 export const handleLocationAccessDenied = async (chatId, env) => {

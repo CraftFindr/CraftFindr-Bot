@@ -96,3 +96,32 @@ export const checkIfUserIsArtisan = async (chatId, env) => {
 		throw new Error(err.message);
 	}
 };
+
+export const checkIsBooking = async (chatId, env) => {
+	try {
+		const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
+		const { data, error } = await supabase.from('Users').select('is_booking_now').eq('chat_id', chatId).single();
+
+		if (error) {
+			console.error('Error checking booking status:', error);
+			throw new Error(error.message);
+		}
+
+		return data?.is_booking_now ?? false;
+	} catch (err) {
+		console.error('Unexpected error:', err);
+		throw new Error(err.message);
+	}
+};
+
+export const getRequestedArtisan = async (chatId, env) => {
+	const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
+	const { error, data } = await supabase.from('Users').select('requested_artisan').eq('chat_id', chatId).single();
+
+	if (error) {
+		console.error('Error fetching requested_artisan:', error);
+		return errorResponse({ error: error.message });
+	}
+
+	return data?.requested_artisan ?? null;
+};

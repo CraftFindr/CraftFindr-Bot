@@ -81,7 +81,6 @@ async function handleIncomingMessage(message, env) {
 
 	if ('location' in message) {
 		const location = message.location;
-		console.log('Location is:', location);
 		await handleLocation(location, chatId, env);
 		return new Response('OK');
 	}
@@ -100,6 +99,12 @@ async function handleMessage(message, env) {
 			break;
 		case '/start':
 			await sendStartMessage(chatId, username, env);
+			break;
+		case '/register':
+			await handleTermsAndConditions(REGISTER_KRAFT, message.chat, env);
+			break;
+		case '/book':
+			await handleTermsAndConditions(BOOK_A_KRAFT, message.chat, env);
 			break;
 		default:
 			await sendDefaultMessage(message, env);
