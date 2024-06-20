@@ -1,4 +1,4 @@
-import { confirmOrCancelBooking, listOfArtisans, listOfSlots, listOfVendors } from '../keyboards.js';
+import { confirmOrCancelBooking, listOfSlots } from '../keyboards.js';
 import { sendMessage, sendMessageWithKeyboard, sendLocationRequest, sendContactRequest } from './messageSender.js';
 
 import {
@@ -25,8 +25,6 @@ import {
 import { listServicesToOffer } from '../listServicesToOffer.js';
 import { listServicesWithRegisteredArtisan } from '../listServicesWithRegisteredArtisan.js';
 import { listArtisansByDistance } from '../listArtisansByDistance.js';
-
-var requestedArtisan = '';
 
 export const handleTermsAndConditions = async (callbackData, chat, env) => {
 	const chatId = chat.id;
@@ -166,6 +164,7 @@ export const handleLocation = async (location, chatId, env) => {
 	const isBooking = await checkIsBooking(chatId, env);
 
 	if (isBooking) {
+		await storeLocationToDB(latitude, longitude, chatId, env);
 		await handleGetArtisansNearMe(`location-${latitude}-${longitude}`, chatId, env);
 		return;
 	}
@@ -214,6 +213,31 @@ export const listSelectedArtisanTimeSlots = async (callbackData, chatId, env) =>
 	const person = callbackData.split(':')[2];
 	const response = `These are ${person}'s open slots. \nPick what time works for you 📩`;
 	await sendMessageWithKeyboard(env.API_KEY, chatId, response, listOfSlots);
+};
+
+const formatPhoneNumber = (phoneNumber) => {
+	if (phoneNumber.startsWith('234')) {
+		return '0' + phoneNumber.slice(3);
+	}
+	return phoneNumber;
+};
+
+export const alertVendorOfNewBooking = async (callBackData, chatId, env) => {
+	const vendor_username = callBackData.split(':')[1];
+	const vendor_phone = formatPhoneNumber(callBackData.split(':')[2]);
+	const vendor_chatId = formatPhoneNumber(callBackData.split(':')[3]);
+
+	let response = `We have received your booking request.\n${vendor_username} will be in touch shortly.`;
+	let response_to_vendor = `Congratulations! You just got Booked!. \nThe customer will message you shortly.`;
+
+	if (vendor_phone) {
+		response += ` \n\nYou can reach them on ${vendor_phone}`;
+	} else {
+		response += ` \n\nUnfortunately, we do not have the contact number for ${vendor_username} at the moment, but they've gotten your order.`;
+	}
+
+	await sendMessage(env.API_KEY, chatId, response);
+	await sendMessage(env.API_KEY, vendor_chatId, response_to_vendor);
 };
 
 export const handleConfirmOrCancelBooking = async (callbackData, chatId, env) => {

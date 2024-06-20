@@ -14,6 +14,7 @@ import {
 	SELECTED_TIME_SLOT,
 	REJECT_TERMS,
 	SET_UP_PROFILE,
+	GET_VENDORS_FOR,
 } from '../constants.js';
 import { addUserToDB, registerArtisanDisplayName, storePhoneNumberToDB } from '../supabase/services.js';
 
@@ -36,6 +37,7 @@ import {
 	listSelectedArtisanTimeSlots,
 	requestUserLocation,
 	handleLocation,
+	alertVendorOfNewBooking,
 } from './queryHandlers.js';
 
 export async function handleWebhook(request, env) {
@@ -171,6 +173,8 @@ async function handleCallbackQuery(query, env) {
 		await handleLocationAccessDenied(chatId, env);
 	} else if (callbackData.includes(ARTISAN_NEAR_ME)) {
 		await listSelectedArtisanTimeSlots(callbackData, chatId, env);
+	} else if (callbackData.includes(GET_VENDORS_FOR)) {
+		await alertVendorOfNewBooking(callbackData, chatId, env);
 	} else if (callbackData.includes(SELECTED_TIME_SLOT)) {
 		await handleConfirmOrCancelBooking(callbackData, chatId, env);
 	}

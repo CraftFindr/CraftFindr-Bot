@@ -15,3 +15,4 @@ export const SELECTED_ARTISAN = 'selectedArtisan';
 export const ARTISAN_NEAR_ME = 'artisanNearMe';
 export const SELECTED_TIME_SLOT = 'selectedTimeSlot';
 export const SET_UP_PROFILE = 'setUpArtisanProfile';
+export const GET_VENDORS_FOR = 'getVendorsFor';

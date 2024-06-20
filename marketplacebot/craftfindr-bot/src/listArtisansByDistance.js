@@ -26,30 +26,32 @@ export const listArtisansByDistance = async (requestedArtisan, lat, long, chatid
 		// Get chat_ids from vendorsChatId array
 		const chatIds = vendorsChatId.map((vendor) => vendor.artisan_offering_service_by_chat_id);
 
-		const { data: usernames, error: usernamesError } = await supabase.from('Users').select('username').in('chat_id', chatIds);
+		const { data: userData, error: userDataError } = await supabase
+			.from('Users')
+			.select('chat_id, username, phone_number')
+			.in('chat_id', chatIds);
 
-		if (usernamesError) {
-			console.error('Error fetching usernames: ', usernamesError);
-			return errorResponse({ error: usernamesError.message });
+		if (userDataError) {
+			console.error('Error fetching userdata: ', userDataError);
+			return errorResponse({ error: userDataError.message });
 		}
 
-		console.log('Usernames:', usernames);
-
+		console.log('User Data:', userData);
 		const inlineKeyboard = [];
 
 		// Generate inline keyboard layout
-		for (let i = 0; i < usernames.length; i += 2) {
+		for (let i = 0; i < userData.length; i += 2) {
 			const row = [];
 
 			row.push({
-				text: usernames[i].username,
-				callback_data: `getVendorsFor:${usernames[i].username}`,
+				text: userData[i].username,
+				callback_data: `getVendorsFor:${userData[i]['username']}:${userData[i]['phone_number']}:${userData[i]['chat_id']}`,
 			});
 
-			if (i + 1 < usernames.length) {
+			if (i + 1 < userData.length) {
 				row.push({
-					text: usernames[i + 1].username,
-					callback_data: `getVendorsFor:${usernames[i + 1].username}`,
+					text: userData[i + 1].username,
+					callback_data: `getVendorsFor:${userData[i + 1]['username']}:${userData[i + 1]['phone_number']}:${userData[i + 1]['chat_id']}`,
 				});
 			}
 
