@@ -5,7 +5,6 @@ import {
 	REGISTER_KRAFT,
 	BOOK_A_KRAFT,
 	HAS_SELECTED_A_SERVICE_TO_OFFER,
-	BOOKING_CONFIRMED,
 	BOOKING_CANCELLED,
 	LOCATION_ACCESS_DENIED,
 	LOCATION_ACCESS_GRANTED,
@@ -30,8 +29,6 @@ import {
 	confirmArtisanDisplayName,
 	handleGetArtisanContact,
 	handleSelectedArtisan,
-	handleConfirmOrCancelBooking,
-	handleBookingConfirmed,
 	handleBookingCancelled,
 	handleLocationAccessDenied,
 	listSelectedArtisanTimeSlots,
@@ -142,7 +139,7 @@ async function sendDefaultMessage(message, env) {
 
 async function handleCallbackQuery(query, env) {
 	const chat = query.message.chat;
-	const chatId = query.message.chat.id;
+	const chatId = chat.id;
 	const callbackData = String(query.data);
 	const username = query.from.username;
 
@@ -159,10 +156,8 @@ async function handleCallbackQuery(query, env) {
 		await handleRegisterArtisan('ARTISAN', chatId, env);
 	} else if (callbackData === SET_UP_PROFILE) {
 		await handleSetupArtisanProfile(chatId, env);
-	} else if (callbackData === BOOKING_CONFIRMED) {
-		await handleBookingConfirmed(chatId, env);
-	} else if (callbackData === BOOKING_CANCELLED) {
-		await handleBookingCancelled(chatId, env);
+	} else if (callbackData.includes(BOOKING_CANCELLED)) {
+		await handleBookingCancelled(callbackData, chat, env);
 	} else if (callbackData.includes(SELECTED_ARTISAN)) {
 		await handleSelectedArtisan(callbackData, chatId, env);
 	} else if (callbackData.includes(HAS_SELECTED_A_SERVICE_TO_OFFER)) {

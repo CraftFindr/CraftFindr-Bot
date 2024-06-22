@@ -11,6 +11,7 @@ import {
 	LOCATION_ACCESS_DENIED,
 	REJECT_TERMS,
 	SET_UP_PROFILE,
+	BOOKING_CANCELLED,
 } from '../constants.js';
 
 import { checkIfUserHasAcceptedTerms, checkIfUserIsArtisan, checkIsBooking, getRequestedArtisan } from '../supabase/selectors.js';
@@ -32,26 +33,34 @@ export const handleTermsAndConditions = async (callbackData, chat, env) => {
 	const response = `There's one little thing...\n \nFor your own safety, please confirm that you have read and accepted our ${terms_for_who} Terms and Conditions ${TERMS_AND_CONDITIONS_LINK} before proceeding...`;
 
 	var hasAccepted = await checkIfUserHasAcceptedTerms(chatId, env);
+
 	const variation =
 		callbackData === REGISTER_KRAFT ? 'has_accepted_vendor_terms_and_conditions' : 'has_accepted_client_terms_and_conditions';
+
 	hasAccepted = hasAccepted[0][variation];
 	console.log(`${variation}: `, hasAccepted);
 
-	const keyboard = {
-		inline_keyboard: [
-			[
-				{ text: 'Cancel', callback_data: REJECT_TERMS },
-				{ text: 'Proceed', callback_data: `${callbackData === REGISTER_KRAFT ? ACCEPT_TERMS_THEN_REGISTER : ACCEPT_TERMS_THEN_BOOK}` },
+	if (hasAccepted) {
+		variation === 'has_accepted_client_terms_and_conditions'
+			? await handleBookArtisan(callbackData, chatId, env)
+			: await handleRegisterArtisan('VENDOR', chatId, env);
+	} else {
+		const keyboard = {
+			inline_keyboard: [
+				[
+					{ text: 'Cancel', callback_data: REJECT_TERMS },
+					{ text: 'Proceed', callback_data: `${callbackData === REGISTER_KRAFT ? ACCEPT_TERMS_THEN_REGISTER : ACCEPT_TERMS_THEN_BOOK}` },
+				],
 			],
-		],
-	};
-	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
+		};
+		await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
+	}
 };
 
 export const handleBookArtisan = async (acceptFor, chatId, env) => {
 	await acceptTermsAndConditions(acceptFor, chatId, env);
 	await setIsBookingTrue(chatId, env);
-	const response = "Great! Now, let's hook you up 👻 \nWhat kind of service do you need? ⚗️";
+	const response = "Great! let's hook you up 👻 \nWhat kind of service do you need? ⚗️";
 	const keyboard = await listServicesWithRegisteredArtisan(env);
 
 	if (Object.keys(keyboard).length === 0) {
@@ -69,7 +78,7 @@ export const handleRegisterArtisan = async (acceptFor, chatId, env) => {
 	await acceptTermsAndConditions(acceptFor, chatId, env);
 	await setIsBookingFalse(chatId, env);
 
-	const response = "Awesome! Now let's quickly set up your profile 🦊\nThis will help clients find you easier.";
+	const response = "Awesome! let's quickly set up your profile 🦊\nThis will help clients find you easier.";
 	const keyboard = {
 		inline_keyboard: [[{ text: 'Proceed', callback_data: SET_UP_PROFILE }]],
 	};
@@ -236,26 +245,23 @@ export const alertVendorOfNewBooking = async (callBackData, chatId, env) => {
 		response += ` \n\nUnfortunately, we do not have the contact number for ${vendor_username} at the moment, but they've gotten your order.`;
 	}
 
-	await sendMessage(env.API_KEY, chatId, response);
+	const keyboard = {
+		inline_keyboard: [[{ text: 'Cancel Booking', callback_data: `${BOOKING_CANCELLED}:${vendor_chatId}` }]],
+	};
+	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
 	await sendMessage(env.API_KEY, vendor_chatId, response_to_vendor);
 };
 
-export const handleConfirmOrCancelBooking = async (callbackData, chatId, env) => {
-	const response = `Almost there ⏳ \nPlease confirm your booking for ${callbackData.split('-')[1]} and we'll notify them immediately 📬`;
-	await sendMessageWithKeyboard(env.API_KEY, chatId, response, confirmOrCancelBooking);
-};
-
-export const handleBookingConfirmed = async (chatId, env) => {
-	await sendMessage(env.API_KEY, chatId, 'Booking Confirmed 😋 \nThanks for using CraftFindr. The vendor will be with you shortly.');
-};
-
-export const handleBookingCancelled = async (chatId, env) => {
-	const response = 'Booking Cancelled 🥲 \nWhat else can I do for you?';
+export const handleBookingCancelled = async (callbackData, chat, env) => {
+	const vendor_chatId = callbackData.split(':')[1];
+	const response = `The booking by ${chat.username} has been cancelled!`;
+	const client_response = 'Booking Cancelled 🥲 \nWhat else can I do for you?';
 	const keyboard = {
 		inline_keyboard: [
 			[{ text: 'Register your Kraft 🏷️', callback_data: REGISTER_KRAFT }],
 			[{ text: 'Book a Kraft 🔗', callback_data: BOOK_A_KRAFT }],
 		],
 	};
-	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
+	await sendMessage(env.API_KEY, vendor_chatId, response);
+	await sendMessageWithKeyboard(env.API_KEY, chat.id, client_response, keyboard);
 };
