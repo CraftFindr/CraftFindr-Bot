@@ -1,7 +1,9 @@
 export const TERMS_AND_CONDITIONS_LINK = '{insert_link}';
 export const ACCEPT_TERMS_THEN_BOOK = 'hasAcceptedTermsAndConditionsToBook';
 export const ACCEPT_TERMS_THEN_REGISTER = 'hasAcceptedTermsAndConditionsToRegister';
+export const REJECT_TERMS = 'rejectedTermsAndConditions';
 export const REGISTER_KRAFT = 'RegisterKraft';
+export const HAS_SELECTED_A_SERVICE_TO_OFFER = 'selectedService';
 export const BOOK_A_KRAFT = 'BookAKraft';
 export const BOOKING_CONFIRMED = 'BookingConfirmed';
 export const BOOKING_CANCELLED = 'BookingCancelled';
@@ -12,3 +14,5 @@ export const LOCATION_ACCESS_GRANTED = 'locationAccessGranted';
 export const SELECTED_ARTISAN = 'selectedArtisan';
 export const ARTISAN_NEAR_ME = 'artisanNearMe';
 export const SELECTED_TIME_SLOT = 'selectedTimeSlot';
+export const SET_UP_PROFILE = 'setUpArtisanProfile';
+export const GET_VENDORS_FOR = 'getVendorsFor';
