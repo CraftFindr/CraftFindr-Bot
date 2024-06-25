@@ -19,6 +19,39 @@ export async function sendMessageWithKeyboard(apiKey, chatId, text, keyboard) {
 	return response.json();
 }
 
+export async function sendMessageWithLinkAndKeyboard(apiKey, chatId, text, keyboard, parseMode = 'HTML') {
+	const url = `https://api.telegram.org/bot${apiKey}/sendMessage`;
+	const payload = {
+		chat_id: chatId,
+		text: text,
+		reply_markup: JSON.stringify(keyboard),
+		parse_mode: parseMode,
+	};
+	const options = {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload),
+	};
+	const response = await fetch(url, options);
+	return response.json();
+}
+
+export async function sendMessageWithLink(apiKey, chatId, text, parseMode = 'HTML') {
+	const url = `https://api.telegram.org/bot${apiKey}/sendMessage`;
+	const payload = {
+		chat_id: chatId,
+		text: text,
+		parse_mode: parseMode,
+	};
+	const options = {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload),
+	};
+	const response = await fetch(url, options);
+	return response.json();
+}
+
 export const sendLocationRequest = async (apiKey, chatId, text, keyboard) => {
 	const url = `https://api.telegram.org/bot${apiKey}/sendMessage`;
 	await fetch(url, {

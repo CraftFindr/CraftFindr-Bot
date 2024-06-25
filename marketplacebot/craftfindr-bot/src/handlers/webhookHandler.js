@@ -18,7 +18,7 @@ import {
 import { addUserToDB, registerArtisanDisplayName, storePhoneNumberToDB } from '../supabase/services.js';
 
 // Messaging Functions
-import { sendMessageWithKeyboard, sendMessage } from './messageSender.js';
+import { sendMessageWithKeyboard, sendMessage, sendMessageWithLink } from './messageSender.js';
 
 // Query Handlers
 import {
@@ -114,8 +114,9 @@ async function handleMessage(message, env) {
 }
 
 async function sendHelpMessage(chatId, env) {
-	const response = "I'm a simple bot. I help you find service workers near you 🧑‍🔧 \nClick /start to get started.";
-	await sendMessage(env.API_KEY, chatId, response);
+	const response =
+		"I'm a simple bot. I help you find service workers near you 🧑‍🔧 \nClick /start to get started. \n\nIf you're facing any issues, you can email us at craftfindr@gmail.com \n\nWe'll respond within 24 hours :) ";
+	await sendMessageWithLink(env.API_KEY, chatId, response);
 }
 
 async function sendStartMessage(chatId, username, env) {

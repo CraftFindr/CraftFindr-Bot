@@ -1,8 +1,13 @@
-import { confirmOrCancelBooking, listOfSlots } from '../keyboards.js';
-import { sendMessage, sendMessageWithKeyboard, sendLocationRequest, sendContactRequest } from './messageSender.js';
+import { listOfSlots } from '../keyboards.js';
+import {
+	sendMessage,
+	sendMessageWithKeyboard,
+	sendMessageWithLinkAndKeyboard,
+	sendLocationRequest,
+	sendContactRequest,
+} from './messageSender.js';
 
 import {
-	TERMS_AND_CONDITIONS_LINK,
 	ACCEPT_TERMS_THEN_BOOK,
 	ACCEPT_TERMS_THEN_REGISTER,
 	REGISTER_KRAFT,
@@ -29,8 +34,7 @@ import { listArtisansByDistance } from '../listArtisansByDistance.js';
 
 export const handleTermsAndConditions = async (callbackData, chat, env) => {
 	const chatId = chat.id;
-	let terms_for_who = callbackData === REGISTER_KRAFT ? 'VENDOR' : 'CLIENT';
-	const response = `There's one little thing...\n \nFor your own safety, please confirm that you have read and accepted our ${terms_for_who} Terms and Conditions ${TERMS_AND_CONDITIONS_LINK} before proceeding...`;
+	const response = `There's one little thing...\n\nFor your own safety, please confirm that you have read and accepted our <a href="https://docs.google.com/document/d/1mikfh46HalpPMEdUfUNPY-oNyVK3rnPf1bui0wQL5_s/edit?usp=sharing">Terms and Conditions</a> before proceeding...`;
 
 	var hasAccepted = await checkIfUserHasAcceptedTerms(chatId, env);
 
@@ -53,7 +57,7 @@ export const handleTermsAndConditions = async (callbackData, chat, env) => {
 				],
 			],
 		};
-		await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
+		await sendMessageWithLinkAndKeyboard(env.API_KEY, chatId, response, keyboard);
 	}
 };
 
@@ -87,7 +91,7 @@ export const handleRegisterArtisan = async (acceptFor, chatId, env) => {
 
 export const handleSetupArtisanProfile = async (chatId, env) => {
 	const response =
-		"What's your service handler? \n\nThis will be shown to potential clients searching for the service you offer. \ne.g  _JennyBeauty Salon. \n\n(Make sure to include the _)";
+		"What's your username? \n\nThis will be shown to potential clients searching for the service you offer. \ne.g  _JennyBeauty Salon. \n\n(Make sure to include the _)";
 	await sendMessage(env.API_KEY, chatId, response);
 };
 
@@ -240,15 +244,18 @@ export const alertVendorOfNewBooking = async (callBackData, chatId, env) => {
 	let response_to_vendor = `Congratulations! You just got Booked!. \nThe customer will message you shortly.`;
 
 	if (vendor_phone) {
-		response += ` \n\nYou can reach them on ${vendor_phone}`;
+		response += ` \n\nYou can reach them on <a href="tg://resolve?domain=${vendor_phone}">${vendor_phone}</a>`;
 	} else {
 		response += ` \n\nUnfortunately, we do not have the contact number for ${vendor_username} at the moment, but they've gotten your order.`;
 	}
 
 	const keyboard = {
-		inline_keyboard: [[{ text: 'Cancel Booking', callback_data: `${BOOKING_CANCELLED}:${vendor_chatId}` }]],
+		inline_keyboard: [
+			[{ text: 'Message them', url: `tg://resolve?domain=${vendor_phone}` }],
+			[{ text: 'Cancel Booking', callback_data: `${BOOKING_CANCELLED}:${vendor_chatId}` }],
+		],
 	};
-	await sendMessageWithKeyboard(env.API_KEY, chatId, response, keyboard);
+	await sendMessageWithLinkAndKeyboard(env.API_KEY, chatId, response, keyboard);
 	await sendMessage(env.API_KEY, vendor_chatId, response_to_vendor);
 };
 
